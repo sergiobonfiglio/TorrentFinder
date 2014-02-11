@@ -49,11 +49,6 @@ function postRequest($url, $data, $header) {
 $link = $_POST['link'];
 $type = $_POST['type'];
 
-//$link = "http://torcache.net/torrent/a2ea23e360cc63598a1216521cb78a40caa289fc.torrent";
-//$link = "http://forum.tntvillage.scambioetico.org/index.php?act=Attach&type=post&id=12354565";
-$link = "http://thetorrent.org/A4AA5CC22A6A667F5A71380D385BB8AB65BAD0DC.torrent";
-$type = "torrent";
-
 if (isset($link) && isset($type)) {
 
 	$url = 'http://raspberrypi:5555/transmission/rpc';
