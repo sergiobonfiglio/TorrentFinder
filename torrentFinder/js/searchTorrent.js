@@ -21,7 +21,7 @@ $(document).ready(
 					for (var i = 0; i < providers.length; i++) {
 						$("#prvList").append(
 								"<li><input type='checkbox' checked='checked' value='"
-										+ providers[i].className + "'><span class='label' "
+										+ providers[i].className + "'> <span class='label' "
 										+ getStyle(providers[i]) + ">" + providers[i].name
 										+ "</span></li>");
 					}
@@ -77,7 +77,8 @@ $(document).ready(
 										}
 									}
 
-									//use timer to avoid outdated read of variable
+									// use timer to avoid outdated read of
+									// variable
 									setTimeout(function() {
 										if (pendingRequests <= 0) {
 											$("#progressBar").css("width", "100%");
@@ -91,8 +92,6 @@ $(document).ready(
 		});
 
 function formatResults(res) {
-
-	// var res = $.parseJSON(JsonResults);
 
 	if (res != null && res.length > 0) {
 		var rows = "";
@@ -155,13 +154,12 @@ function addTorrent(event) {
 				var res = $.parseJSON(msg.responseText);
 				if (status == "success" && res.result == "success") {
 					alert("Torrent " + res.arguments["torrent-added"].name
-							+ " was added to the download queue!" + msg);
+							+ " was added to the download queue!");
 				} else {
-					alert("Error: " + res.result + " (" + msg + ")");
-
+					alert("Error: [" + status + "] " + " (" + msg.responseText + ")");
 				}
 			} catch (err) {
-				alert("Error: [" + status + "] " + err + " (" + msg.responseText + ")");
+				alert("Error: [" + status + "] " + " (" + msg.responseText + ") " + err);
 			}
 		}
 	});
