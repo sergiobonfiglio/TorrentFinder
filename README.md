@@ -4,7 +4,8 @@ TorrentFinder it's a web application with a PHP back-end that allows torrents se
 
 Torrent search is performed by parsing different websites or by using their external API. The architecture of the system has been designed to make the addition of different search engines very easy.
 
-Some screenshots: https://www.dropbox.com/sh/muwrxgz2l9z81jf/om6QZmGx0X/TorrentFinder#/
+Interface:
+![main-ui](https://dl.dropbox.com/sh/muwrxgz2l9z81jf/AAD7zVFYyYwf6l62C5tgCsI7a/TorrentFinder/Schermata%202014-02-10%20a%2022.05.28.png)
 
 ##Requisites 
 * A web server (like Lighttpd or Apache) with the PHP module installed
