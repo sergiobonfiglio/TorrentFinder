@@ -5,7 +5,7 @@ include_once ('common/TorrentData.php');
 class PirateBayTorrentFinder extends TorrentFinderBase {
 
 	public function getSiteUrl(){
-		return "http://bayproxy.me";
+		return "https://thepiratebay.org";
 	}
 
 	public function getSourceName() {
@@ -19,7 +19,7 @@ class PirateBayTorrentFinder extends TorrentFinderBase {
 	}
 
 	public function getBaseUrl() {
-		return 'http://bayproxy.me/search1.php?';
+		return 'https://thepiratebay.org/search/';
 	}
 
 	protected function getRequestParameters($keywords) {
@@ -55,7 +55,7 @@ class PirateBayTorrentFinder extends TorrentFinderBase {
 		if ($description == null)
 			$description = "";
 
-		$sourceUrl = 'http://bayproxy.me' . $contentTd -> item(1) -> childNodes -> item(1) -> getAttribute('href');
+		$sourceUrl = 'https://thepiratebay.org' . $contentTd -> item(1) -> childNodes -> item(1) -> getAttribute('href');
 
 		$magnetLink = $contentTd -> item(3) -> getAttribute('href');
 
