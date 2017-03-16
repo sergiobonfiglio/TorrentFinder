@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<title>Torrent Finder</title>
+		<meta charset="utf-8">
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
@@ -30,15 +31,20 @@
 						<ul class="dropdown-menu" role="menu" id="prvList" style="padding: 10px"></ul>
 					</div>
 					<input type="text" id="srcBox" class="form-control"
-					placeholder="Insert search term..." />
+					placeholder="Insert search term..." /><br>
 					<textarea 
 						id="srcMultiple" 
 						class="form-control"
 						placeholder="..or insert multiple searches (1 per line)"
-					></textarea>
+						title="all titles are trimmed and duplicates are automatically ignored"
+					></textarea><br>
+					<input type="checkbox" id="srcSettingCutBookTitles" /><label for="srcSettingCutBookTitles">Book search: cuts search term off at first occurrence of any of:</label> <input type="text" title="separate individual characters/terms with pipe | (from most likely to least likely)" id="srcSettingCutBookTitlesAt" value=""/> 
+					<br>
+						
 				</div>
 
 			</form>
+			<div class="debug"></div>
 			<div class="progress progress-striped active" >
 				<div id="progressBar" class="progress-bar" role="progressbar" aria-valuenow="45"
 				aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>

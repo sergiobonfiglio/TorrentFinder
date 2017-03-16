@@ -1,77 +1,123 @@
 var pendingRequests = 0;
 var results = new Array();
+var srcSettingCutBookTitlesAt = [ // defaults:
+	':',
+	'–',
+	' -', // normal hyphen, don't match inside words
+	'－',
+	'(',
+	'[',
+	'{',
+	'by',
+	'⹀',
+	'=',
+	' "',
+	" '",
+];
+var srcSettingCutBookTitles = false;
 
-$(document).ready(
+$(document).ready(function() {
+	$('#resultsContainer').parent().hide();
+	$("#progressBar").parent().hide();
 
-	function() {
-		$('#resultsContainer').parent().hide();
-		$("#progressBar").parent().hide();
+	$("#srcSettingCutBookTitlesAt").val(srcSettingCutBookTitlesAt.join("|"));
 
-		$("form").bind("submit", function(event) {
-			event.preventDefault();
-		});
+	$("form").bind("submit", function(event) {
+		event.preventDefault();
+	});
 
-		// load available providers
-		$.ajax({
-			type : "GET",
-			url : 'availableParsers.php',
-			success : function(msg) {
+	// load available providers
+	$.ajax({
+		type : "GET",
+		url : 'availableParsers.php',
+		success : function(msg) {
 
-				var providers = $.parseJSON(msg);
-				for (var i = 0; i < providers.length; i++) {
-					$("#prvList").append(
-							"<li><input type='checkbox' checked='checked' value='"
-									+ providers[i].className + "'> <span class='label' "
-									+ getStyle(providers[i]) + ">" + providers[i].name
-									+ "</span></li>");
-				}
-
-			},
-		});
-
-		// search button
-		$("#srcButton").bind(
-			"click",
-			function(event) {
-				event.preventDefault();
-
-				$('#resultsContainer').parent().animate({
-					height : 0,
-					opacity : 0
-				}, function() {
-					$('#resultsContainer').find("tr:gt(0)").remove();
-					results = new Array();
-					$("#progressBar").parent().show();
-					$("#progressBar").css("width", "10%");
-				});
-
-				var providers = $("#prvList li input:checked");
-
-				if ($('#srcMultiple').val() != '')
-				{
-					var searchTerms = $('#srcMultiple').val().split(/\r\n|\r|\n/);
-					pendingRequests = searchTerms.length * providers.length;
-					
-					$.each(searchTerms, function(key, searchTerm) {
-						setTimeout(
-							searchTorrent(searchTerm, providers),
-							50
-						);
-					});
-				}
-				else { // always default to single search:
-					var searchTerm = $('#srcBox').val();
-					pendingRequests = 1 * providers.length;
-
-					searchTorrent(searchTerm, providers);
-				}
-
+			var providers = $.parseJSON(msg);
+			for (var i = 0; i < providers.length; i++) {
+				$("#prvList").append(
+						"<li><input type='checkbox' checked='checked' value='"
+								+ providers[i].className + "'> <span class='label' "
+								+ getStyle(providers[i]) + ">" + providers[i].name
+								+ "</span></li>");
 			}
-		);
-	}			
-);
+
+		},
+	});
+
+	// search button
+	$("#srcButton").bind(
+		"click",
+		function(event) {
+			event.preventDefault();
+
+			$('#resultsContainer').parent().animate({
+				height : 0,
+				opacity : 0
+			}, function() {
+				$('#resultsContainer').find("tr:gt(0)").remove();
+				results = new Array();
+				$("#progressBar").parent().show();
+				$("#progressBar").css("width", "10%");
+			});
+			
+			var providers = $("#prvList li input:checked");
+			if (
+				   ($('#srcSettingCutBookTitles').prop('checked') == true)
+				&& ($('#srcSettingCutBookTitlesAt').length > 0)
+			)
+			{
+				srcSettingCutBookTitles = true;
+				srcSettingCutBookTitlesAt = $('#srcSettingCutBookTitlesAt').val().split('|');
+			}
+
+
+			if ($('#srcMultiple').val() != '')
+			{
+				var searchTerms = $('#srcMultiple').val().split(/\r\n|\r|\n/);
+				pendingRequests = searchTerms.length * providers.length;
+
+				$.each(searchTerms, function(key, searchTerm) {
+					setTimeout(
+						searchTorrent(searchTerm, providers),
+						50
+					);
+				});
+			}
+			else { // always default to single search:
+				var searchTerm = $('#srcBox').val();
+				pendingRequests = 1 * providers.length;
+
+				searchTorrent(searchTerm, providers);
+			}
+
+		}
+	);
+});
+
+function cutBookTitleAt(searchTerm) {
+	$(srcSettingCutBookTitlesAt).each(function(key, cutWith) {
+		
+		newTerm = searchTerm.split(cutWith)[0];
+		if (
+			   (newTerm != searchTerm)
+			&& (newTerm.length > 0)
+		)
+		{
+			searchTerm = newTerm;
+			return false; // break 
+		}
+	});
+	
+	return searchTerm;
+}
 		
 function searchTorrent(searchTerm, providers) {
+	if (srcSettingCutBookTitles == true)
+	{
+		searchTerm = cutBookTitleAt(searchTerm);
+	}
+
+	
 	for (var i = 0; i < providers.length; i++) {
 		$.ajax({
 			type : "POST",
