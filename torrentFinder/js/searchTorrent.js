@@ -3,93 +3,117 @@ var results = new Array();
 
 $(document).ready(
 
-		function() {
-			$('#resultsContainer').parent().hide();
-			$("#progressBar").parent().hide();
+	function() {
+		$('#resultsContainer').parent().hide();
+		$("#progressBar").parent().hide();
 
-			$("form").bind("submit", function(event) {
-				event.preventDefault();
-			});
-
-			// load available providers
-			$.ajax({
-				type : "GET",
-				url : 'availableParsers.php',
-				success : function(msg) {
-
-					var providers = $.parseJSON(msg);
-					for (var i = 0; i < providers.length; i++) {
-						$("#prvList").append(
-								"<li><input type='checkbox' checked='checked' value='"
-										+ providers[i].className + "'> <span class='label' "
-										+ getStyle(providers[i]) + ">" + providers[i].name
-										+ "</span></li>");
-					}
-
-				},
-			});
-
-			// search button
-			$("#srcButton").bind(
-					"click",
-					function(event) {
-						event.preventDefault();
-						var keywords = $('#srcBox').val();
-
-						$('#resultsContainer').parent().animate({
-							height : 0,
-							opacity : 0
-						}, function() {
-							$('#resultsContainer').find("tr:gt(0)").remove();
-							results = new Array();
-							$("#progressBar").parent().show();
-							$("#progressBar").css("width", "10%");
-						});
-
-						var providers = $("#prvList li input:checked");
-						pendingRequests = providers.length;
-						for (var i = 0; i < providers.length; i++) {
-							$.ajax({
-								type : "POST",
-								url : 'searchTorrents.php',
-								data : 'keywords=' + keywords + '&p=' + providers[i].value,
-								complete : function(msg, status) {
-									pendingRequests -= 1;
-
-									$("#progressBar").css(
-											"width",
-											(providers.length - pendingRequests)
-													* (100 / providers.length) + "%");
-									if (status == "success" && msg.responseText != null
-											&& msg.responseText != "") {
-										results[pendingRequests] = $.parseJSON(msg.responseText);
-
-										var sortedResults = sortResults(results);
-										if (sortedResults != null && sortedResults.length > 0) {
-											var formattedResults = formatResults(sortedResults);
-											$('#resultsContainer').find("tr:gt(0)").remove();
-											$('#resultsContainer').children().append(
-													formattedResults);
-											$('#resultsContainer').parent().show().animate({
-												height : '100%',
-												opacity : 1
-											});
-										}
-									}
-
-									// use timer to avoid outdated read of
-									// variable
-									setTimeout(function() {
-										if (pendingRequests <= 0) {
-											$("#progressBar").css("width", "100%");
-											$("#progressBar").parent().fadeOut();
-										}
-									}, 500);
-								},
-							});
-						}
-					});
+		$("form").bind("submit", function(event) {
+			event.preventDefault();
 		});
+
+		// load available providers
+		$.ajax({
+			type : "GET",
+			url : 'availableParsers.php',
+			success : function(msg) {
+
+				var providers = $.parseJSON(msg);
+				for (var i = 0; i < providers.length; i++) {
+					$("#prvList").append(
+							"<li><input type='checkbox' checked='checked' value='"
+									+ providers[i].className + "'> <span class='label' "
+									+ getStyle(providers[i]) + ">" + providers[i].name
+									+ "</span></li>");
+				}
+
+			},
+		});
+
+		// search button
+		$("#srcButton").bind(
+			"click",
+			function(event) {
+				event.preventDefault();
+
+				$('#resultsContainer').parent().animate({
+					height : 0,
+					opacity : 0
+				}, function() {
+					$('#resultsContainer').find("tr:gt(0)").remove();
+					results = new Array();
+					$("#progressBar").parent().show();
+					$("#progressBar").css("width", "10%");
+				});
+
+				var providers = $("#prvList li input:checked");
+
+				if ($('#srcMultiple').val() != '')
+				{
+					var searchTerms = $('#srcMultiple').val().split(/\r\n|\r|\n/);
+					pendingRequests = searchTerms.length * providers.length;
+					
+					$.each(searchTerms, function(key, searchTerm) {
+						setTimeout(
+							searchTorrent(searchTerm, providers),
+							50
+						);
+					});
+				}
+				else { // always default to single search:
+					var searchTerm = $('#srcBox').val();
+					pendingRequests = 1 * providers.length;
+
+					searchTorrent(searchTerm, providers);
+				}
+
+			}
+		);
+	}			
+);
+		
+function searchTorrent(searchTerm, providers) {
+	for (var i = 0; i < providers.length; i++) {
+		$.ajax({
+			type : "POST",
+			url : 'searchTorrents.php',
+			data : 'keywords=' + searchTerm + '&p=' + providers[i].value,
+			complete : function(msg, status) {
+				pendingRequests -= 1;
+
+				$("#progressBar").css(
+						"width",
+						(providers.length - pendingRequests)
+								* (100 / providers.length) + "%");
+				if (status == "success" && msg.responseText != null
+						&& msg.responseText != "") {
+					results[pendingRequests] = $.parseJSON(msg.responseText);
+
+					var sortedResults = sortResults(results);
+					if (sortedResults != null && sortedResults.length > 0) {
+						var formattedResults = formatResults(sortedResults);
+						$('#resultsContainer').find("tr:gt(0)").remove();
+						$('#resultsContainer').children().append(
+								formattedResults);
+						$('#resultsContainer').parent().show().animate({
+							height : '100%',
+							opacity : 1
+						});
+					}
+				}
+
+				// use timer to avoid outdated read of
+				// variable
+				setTimeout(function() {
+					if (pendingRequests <= 0) {
+						$("#progressBar").css("width", "100%");
+						$("#progressBar").parent().fadeOut();
+					}
+				}, 500);
+			},
+		});
+		
+	}
+}
 
 function formatResults(res) {
 
