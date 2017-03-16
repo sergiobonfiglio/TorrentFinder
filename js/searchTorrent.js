@@ -1,4 +1,5 @@
 var pendingRequests = 0;
+var totalRequests = 0;
 var results = new Array();
 var srcSettingCutBookTitlesAt = [ // defaults:
 	':',
@@ -59,8 +60,9 @@ $(document).ready(function() {
 				$('#resultsContainer').find("tr:gt(0)").remove();
 				results = new Array();
 				$("#progressBar").parent().show();
-				$("#progressBar").css("width", "1%");
+				$("#progressBar").css("width", "100%");
 			});
+			$('#progressBar').html('Preparing search');
 			
 			var providers = $("#prvList li input:checked");
 			if (
@@ -76,7 +78,8 @@ $(document).ready(function() {
 			if ($('#srcMultiple').val() != '')
 			{
 				var searchTerms = $('#srcMultiple').val().split(/\r\n|\r|\n/);
-				pendingRequests = searchTerms.length * providers.length;
+				totalRequests = pendingRequests = searchTerms.length * providers.length;
+				$('#progressBar').html('Preparing to parse ' + pendingRequests + ' searches');
 
 				$.each(searchTerms, function(key, searchTerm) {
 					setTimeout(
@@ -87,7 +90,7 @@ $(document).ready(function() {
 			}
 			else { // always default to single search:
 				var searchTerm = $('#srcBox').val();
-				pendingRequests = 1 * providers.length;
+				totalRequests = pendingRequests = 1 * providers.length;
 
 				searchTorrent(searchTerm, providers);
 			}
@@ -137,9 +140,12 @@ function searchTorrent(searchTerm, providers) {
 					pendingRequests -= 1;
 
 					$("#progressBar").css(
-							"width",
-							(providers.length - pendingRequests)
-									* (100 / providers.length) + "%");
+						"width",
+						(totalRequests - pendingRequests) * (100 / totalRequests) + "%"
+					);
+					$('#progressBar').html((totalRequests - pendingRequests) + '/' + totalRequests + ' done');
+			
+			
 					if (status == "success" && msg.responseText != null
 							&& msg.responseText != "") {
 						results[pendingRequests] = $.parseJSON(msg.responseText);
@@ -162,6 +168,7 @@ function searchTorrent(searchTerm, providers) {
 					setTimeout(function() {
 						if (pendingRequests <= 0) {
 							$("#progressBar").css("width", "100%");
+							$('#progressBar').html('DONE');
 							$("#progressBar").parent().fadeOut();
 						}
 					}, 500);
@@ -170,6 +177,10 @@ function searchTorrent(searchTerm, providers) {
 
 		}
 	}
+	else {
+		pendingRequests -= providers.length;
+	}
+
 }
 
 function formatResults(res) {
