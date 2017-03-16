@@ -49,7 +49,7 @@ abstract class TorrentFinderBase implements ITorrentFinder {
 	protected abstract function getBaseUrl();
 	public abstract function getFgAndBgColor();
 
-	private function getParamEncodedUrl($keywords) {
+	protected function getParamEncodedUrl($keywords) {
 		return $this -> getBaseUrl() . $this -> getRequestParameters($keywords);
 	}
 
@@ -62,14 +62,18 @@ abstract class TorrentFinderBase implements ITorrentFinder {
 	protected abstract function parseDomNode($node);
 
 	private function getHtmlPage($keywords) {
+	
 
 		if (!isset($lastKeywords) || $keywords != $lastKeywords) {
 			$context = $this -> getRequestContext($keywords);
 			$options = stream_context_get_options($context);
 
-			if ($options['http']['method'] == "POST") {
+			if ($options['http']['method'] == "POST")
+			{
 				$url = $this -> getBaseUrl();
-			} else {
+			} 
+			else
+			{
 				$url = $this -> getParamEncodedUrl($keywords);
 			}
 

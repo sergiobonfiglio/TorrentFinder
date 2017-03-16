@@ -4,14 +4,18 @@ include_once ('common/TorrentData.php');
 
 class PirateBayTorrentFinder extends TorrentFinderBase {
 
+	protected $siteUrl = "https://thepiratebay.org";
+	
+	
+	
 	public function getSiteUrl(){
-		return "https://thepiratebay.org";
+		return $this->siteUrl;
 	}
 
 	public function getSourceName() {
 		return "ThePirateBay";
 	}
-
+	
 	public function getFgAndBgColor() {
 		$color['fg'] = '#B78020';
 		$color['bg'] = 'black';
@@ -19,11 +23,18 @@ class PirateBayTorrentFinder extends TorrentFinderBase {
 	}
 
 	public function getBaseUrl() {
-		return 'https://thepiratebay.org/search/';
+		return $this->getSiteUrl().'/search/';
+	}
+	protected function getParamEncodedUrl($keywords) {
+		return 
+			$this -> getBaseUrl() 
+			. $this -> getRequestParameters($keywords)
+			. '/0/5/0' // order by Size DESC
+		;
 	}
 
 	protected function getRequestParameters($keywords) {
-		return http_build_query(array('q' => urlencode($keywords)));
+		return urlencode($keywords);
 	}
 
 	public function getRequestContext($keywords) {
@@ -55,8 +66,9 @@ class PirateBayTorrentFinder extends TorrentFinderBase {
 		if ($description == null)
 			$description = "";
 
-		$sourceUrl = 'https://thepiratebay.org' . $contentTd -> item(1) -> childNodes -> item(1) -> getAttribute('href');
+		$sourceUrl = $this->getSiteUrl() . $contentTd -> item(1) -> childNodes -> item(1) -> getAttribute('href');
 
+		$torrentLink = '';
 		$magnetLink = $contentTd -> item(3) -> getAttribute('href');
 
 		if ($torrentLink != null || $magnetLink != null) {
@@ -67,4 +79,3 @@ class PirateBayTorrentFinder extends TorrentFinderBase {
 	}
 
 }
-?>
