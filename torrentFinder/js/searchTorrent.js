@@ -15,6 +15,8 @@ var srcSettingCutBookTitlesAt = [ // defaults:
 	" '",
 ];
 var srcSettingCutBookTitles = false;
+var cacheDuplicatesShort = []
+
 
 $(document).ready(function() {
 	$('#resultsContainer').parent().hide();
@@ -57,7 +59,7 @@ $(document).ready(function() {
 				$('#resultsContainer').find("tr:gt(0)").remove();
 				results = new Array();
 				$("#progressBar").parent().show();
-				$("#progressBar").css("width", "10%");
+				$("#progressBar").css("width", "1%");
 			});
 			
 			var providers = $("#prvList li input:checked");
@@ -116,48 +118,57 @@ function searchTorrent(searchTerm, providers) {
 	{
 		searchTerm = cutBookTitleAt(searchTerm);
 	}
-
 	
-	for (var i = 0; i < providers.length; i++) {
-		$.ajax({
-			type : "POST",
-			url : 'searchTorrents.php',
-			data : 'keywords=' + searchTerm + '&p=' + providers[i].value,
-			complete : function(msg, status) {
-				pendingRequests -= 1;
+	searchTerm = searchTerm.trim();
+	
+	if (
+		   (searchTerm.length > 1)
+		&& ($.inArray(searchTerm, cacheDuplicatesShort) == -1)
+	)
+	{
+		cacheDuplicatesShort.push(searchTerm);
 
-				$("#progressBar").css(
-						"width",
-						(providers.length - pendingRequests)
-								* (100 / providers.length) + "%");
-				if (status == "success" && msg.responseText != null
-						&& msg.responseText != "") {
-					results[pendingRequests] = $.parseJSON(msg.responseText);
+		for (var i = 0; i < providers.length; i++) {
+			$.ajax({
+				type : "POST",
+				url : 'searchTorrents.php',
+				data : 'keywords=' + searchTerm + '&p=' + providers[i].value,
+				complete : function(msg, status) {
+					pendingRequests -= 1;
 
-					var sortedResults = sortResults(results);
-					if (sortedResults != null && sortedResults.length > 0) {
-						var formattedResults = formatResults(sortedResults);
-						$('#resultsContainer').find("tr:gt(0)").remove();
-						$('#resultsContainer').children().append(
-								formattedResults);
-						$('#resultsContainer').parent().show().animate({
-							height : '100%',
-							opacity : 1
-						});
+					$("#progressBar").css(
+							"width",
+							(providers.length - pendingRequests)
+									* (100 / providers.length) + "%");
+					if (status == "success" && msg.responseText != null
+							&& msg.responseText != "") {
+						results[pendingRequests] = $.parseJSON(msg.responseText);
+
+						var sortedResults = sortResults(results);
+						if (sortedResults != null && sortedResults.length > 0) {
+							var formattedResults = formatResults(sortedResults);
+							$('#resultsContainer').find("tr:gt(0)").remove();
+							$('#resultsContainer').children().append(
+									formattedResults);
+							$('#resultsContainer').parent().show().animate({
+								height : '100%',
+								opacity : 1
+							});
+						}
 					}
-				}
 
-				// use timer to avoid outdated read of
-				// variable
-				setTimeout(function() {
-					if (pendingRequests <= 0) {
-						$("#progressBar").css("width", "100%");
-						$("#progressBar").parent().fadeOut();
-					}
-				}, 500);
-			},
-		});
-		
+					// use timer to avoid outdated read of
+					// variable
+					setTimeout(function() {
+						if (pendingRequests <= 0) {
+							$("#progressBar").css("width", "100%");
+							$("#progressBar").parent().fadeOut();
+						}
+					}, 500);
+				},
+			});
+
+		}
 	}
 }
 
