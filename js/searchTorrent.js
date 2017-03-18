@@ -65,17 +65,45 @@ $(document).ready(function() {
 			$('#progressBar').html('Preparing search');
 			
 			var providers = $("#prvList li input:checked");
-			if (
-				   ($('#srcSettingCutBookTitles').prop('checked') == true)
-				&& ($('#srcSettingCutBookTitlesAt').length > 0)
-			)
-			{
-				srcSettingCutBookTitles = true;
-				srcSettingCutBookTitlesAt = $('#srcSettingCutBookTitlesAt').val().split('|');
-			}
 			
 			if ($('#srcMultiple').val() != '')
 			{
+				if (
+					   ($('#srcSettingCutBookTitles').prop('checked') == true)
+					&& ($('#srcSettingCutBookTitlesAt').length > 0)
+				)
+				{
+					srcSettingCutBookTitles = true;
+					srcSettingCutBookTitlesAt = $('#srcSettingCutBookTitlesAt').val().split('|');
+				}
+
+				var searchRounds = 0;
+				if ($('#srcSettingTV720p').prop('checked'))
+				{
+					var srcSettingTV720p = true;
+					searchRounds++;
+				}
+				else
+				{
+					var srcSettingTV720p = false;
+				}
+
+				if ($('#srcSettingTVfromCAT').prop('checked'))
+				{
+					var srcSettingTV1080p = true;
+					searchRounds++;
+				}
+				else
+				{
+					var srcSettingTV1080p = false;
+				}
+				
+				if (searchRounds == 0)
+				{
+					searchRounds = 1;
+				}
+				
+			
 				var searchRaw = $('#srcMultiple').val();
 				searchRaw.replace(/\r\n|\r|\n/, /\n/);
 				searchRaw += "\n"; // makes parsing easier, ignored in search
@@ -87,14 +115,30 @@ $(document).ready(function() {
 				}
 				
 				var searchTerms = searchRaw.split(/\n/);
-				totalRequests = pendingRequests = searchTerms.length * providers.length;
+				totalRequests = pendingRequests = searchTerms.length * providers.length * searchRounds;
 				$('#progressBar').html('Preparing to parse ' + pendingRequests + ' searches');
 
 				$.each(searchTerms, function(key, searchTerm) {
-					setTimeout(
-						searchTorrent(searchTerm, providers),
-						50
-					);
+					if (searchTerm.length > 1)
+					{
+					
+						var searchExecuted = false; // enables searching for 720p and 1080p simoltaneously
+						if (srcSettingTV720p)
+						{
+							queueSearchTorrent(searchTerm + ' 720p', providers);
+							searchExecuted = true;
+						}
+						if (srcSettingTV1080p)
+						{
+							queueSearchTorrent(searchTerm + ' 1080p', providers);
+							searchExecuted = true;
+						}
+
+						if (searchExecuted === false)
+						{
+							queueSearchTorrent(searchTerm, providers);
+						}
+					}
 				});
 			}
 			else { // always default to single search:
@@ -107,6 +151,15 @@ $(document).ready(function() {
 		}
 	);
 });
+
+function queueSearchTorrent(searchTerm, providers)
+{
+	setTimeout(
+		searchTorrent(searchTerm, providers),
+		50
+	);
+	// TODO: use jQuery.ajaxMultiQueue 
+}
 
 function cutBookTitleAt(searchTerm) {
 	$(srcSettingCutBookTitlesAt).each(function(key, cutWith) {
