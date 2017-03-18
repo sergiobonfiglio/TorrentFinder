@@ -105,7 +105,7 @@ $(document).ready(function() {
 				
 			
 				var searchRaw = $('#srcMultiple').val();
-				searchRaw.replace(/\r\n|\r|\n/, /\n/);
+				searchRaw = searchRaw.replace(/\r\n|\r|\n/, "\n"); // convert Mac and Windows line endings to Unix
 				searchRaw += "\n"; // makes parsing easier, ignored in search
 
 				if ($('#srcSettingTVfromCAT').prop('checked') == true)
@@ -114,6 +114,7 @@ $(document).ready(function() {
 					$('#srcMultiple').val(searchRaw); // update search box so user can see it affected the search
 				}
 				
+				searchRaw = searchRaw.replace(/(?:(?:\r\n|\r|\n)\s*){2}/gm, ""); // remove empty lines
 				var searchTerms = searchRaw.split(/\n/);
 				totalRequests = pendingRequests = searchTerms.length * providers.length * searchRounds;
 				$('#progressBar').html('Preparing to parse ' + pendingRequests + ' searches');
