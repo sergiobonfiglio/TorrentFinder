@@ -73,11 +73,20 @@ $(document).ready(function() {
 				srcSettingCutBookTitles = true;
 				srcSettingCutBookTitlesAt = $('#srcSettingCutBookTitlesAt').val().split('|');
 			}
-
-
+			
 			if ($('#srcMultiple').val() != '')
 			{
-				var searchTerms = $('#srcMultiple').val().split(/\r\n|\r|\n/);
+				var searchRaw = $('#srcMultiple').val();
+				searchRaw.replace(/\r\n|\r|\n/, /\n/);
+				searchRaw += "\n"; // makes parsing easier, ignored in search
+
+				if ($('#srcSettingTVfromCAT').prop('checked') == true)
+				{
+					searchRaw = searchRaw.replace(/\n(S[0-9][0-9]E[0-9][0-9]\n)/gi, " $1");
+					$('#srcMultiple').val(searchRaw); // update search box so user can see it affected the search
+				}
+				
+				var searchTerms = searchRaw.split(/\n/);
 				totalRequests = pendingRequests = searchTerms.length * providers.length;
 				$('#progressBar').html('Preparing to parse ' + pendingRequests + ' searches');
 
